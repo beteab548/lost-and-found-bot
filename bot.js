@@ -1,15 +1,14 @@
 import { Telegraf } from "telegraf";
-import dotenv from "dotenv";
-dotenv.config();
 const token = "7815304747:AAGQPXhRdCa88KMeS3pUau3akF_0XxI53qw";
 const bot = new Telegraf(token);
-const userResponse = {};
+let userResponse = {};
 bot.command("start", (ctx) => {
   userResponse[ctx.from.id] = { state: "name" };
   ctx.reply("welcome what is your name?");
 });
 bot.on("text", (ctx) => {
   const userState = userResponse[ctx.from.id];
+  console.log(userState);
   if (userState.state === "name") {
     userState.name = ctx.message.text;
     userState.state = "email";
@@ -38,12 +37,26 @@ bot.on("text", (ctx) => {
 bot.on("callback_query", (ctx) => {
   const action = ctx.callbackQuery.data;
   if (action === "Find") {
-    ctx.reply("pls fill on this form to find your lost items");
-    ctx.reply("pls fill on this form to find your lost items");
+    ctx.reply("do you have an image of your lost items?", {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "yes", callback_data: "yes_image" },
+            { text: "no", callback_data: "no_image" },
+          ],
+        ],
+      },
+    });
+  }
+  if (action === "yes_image") {
+    ctx.reply("upload your image here...");
+  }
+  // userState['file']//accept the image here and store it in the app
+  if (action === "no_image") {
+    ctx.reply("what is the item you lost? describe it with 3 words");
   }
   if (action === "Report") {
-    ctx.reply("pls fill on this form to report a lost items");
-    ctx.reply()
+    ctx.reply("");
   }
 });
 bot.command("help", (ctx) => {
@@ -51,18 +64,5 @@ bot.command("help", (ctx) => {
     "Welcome how can help you? this are the commands\n /start='to start', \n /help='to get help' \n /stop='to stop bot'"
   );
 });
-// bot.on("text", (ctx) => {
-//
-// });
-// bot.on("callback_query", (ctx) => {
-//   const action = ctx.callbackQuery.data;
-//   if (action === "Find") {
-//     ctx.reply("pls fill on this form to find your lost items");
-//     ctx.reply("pls fill on this form to find your lost items");
-//   }
-//   if (action === "Report") {
-//     ctx.reply("pls fill on this form to report a lost items");
-//   }
-// });
 bot.launch();
 console.log("bot litenig...");
