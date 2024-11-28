@@ -3,7 +3,8 @@ import fs from "fs";
 import path from "path";
 import { pipeline } from "stream";
 import connect from "./database/connect.js";
-import { user } from "./database/models.js";
+import { searchImage, user } from "./database/models.js";
+import mongoose, { SchemaTypes } from "mongoose";
 const token = "7815304747:AAGQPXhRdCa88KMeS3pUau3akF_0XxI53qw";
 const bot = new Telegraf(token);
 let userResponse = {};
@@ -13,6 +14,7 @@ bot.command("start", async (ctx) => {
   const userExist = await user.findOne({ chatId: ctx.from.id });
   if (userExist) {
     const userData = {
+      userId: userExist._id.toString(),
       chatId: userExist.chatId,
       name: userExist.name,
       email: userExist.email,
@@ -100,24 +102,31 @@ bot.on("callback_query", (ctx) => {
   }
 });
 bot.on("photo", async (ctx) => {
+  // console.log(userState);
+  // console.log("below is userResponse");
+  userState = userResponse[ctx.from.id];
   const imageArray = ctx.message.photo;
   const imageUrl = imageArray[imageArray.length - 1].file_id;
-  console.log("below is file ");
+  const imageName = Date.now();
   const file = await ctx.telegram.getFileLink(imageUrl);
   const response = await fetch(file.href);
   const __dirname = path.resolve();
   const filePath = path.join(
     __dirname,
     "images/find",
-    `image-${Date.now()}.jpg`
+    `image-${imageName}.jpg`
   );
   const fileStream = fs.createWriteStream(filePath);
   try {
     pipeline(response.body, fileStream, (err) => {
       console.log(err);
     });
+    // console.log(userState);
+    await searchImage.create({
+      userId: new mongoose.Types.ObjectId(userState.userId),
+      imageUrl: `image-${imageName}.jpg`,
+    });
     ctx.reply("your image is being processed...pls be patient 😊");
-
     //And this is where i compare with the image i have in my database and give it the matching values
     //check if the image match is found in the database or if not then say like oh sorry no match found try describing your items with words instead
   } catch (err) {
