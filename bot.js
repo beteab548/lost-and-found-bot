@@ -4,13 +4,13 @@ import { pipeline } from "stream";
 const token = "7815304747:AAGQPXhRdCa88KMeS3pUau3akF_0XxI53qw";
 const bot = new Telegraf(token);
 let userResponse = {};
+let userState
 bot.command("start", (ctx) => {
   userResponse[ctx.from.id] = { state: "name" };
   ctx.reply("welcome what is your name?");
-  console.log(userResponse);
 });
 bot.on("text", (ctx) => {
-  const userState = userResponse[ctx.from.id];
+  userState = userResponse[ctx.from.id];
   if (ctx.message.text === "/start") {
     return;
   }
@@ -42,9 +42,14 @@ bot.on("text", (ctx) => {
       },
     });
   }
+  if (userState.state === "Items_description") {
+    userState.imageDescription = ctx.message.text;
+    ctx.reply("pls wait while checking matching description...😊");
+  }
 });
 bot.on("callback_query", (ctx) => {
   const action = ctx.callbackQuery.data;
+   userState = userResponse[ctx.from.id];
   if (action === "Find") {
     ctx.reply("do you have an image of your lost items?", {
       reply_markup: {
@@ -62,6 +67,7 @@ bot.on("callback_query", (ctx) => {
   }
   if (action === "no_image") {
     ctx.reply("what is the item you lost? describe it with 3 words");
+    userState.state = "Items_description";
   }
   if (action === "Report") {
     ctx.reply("");
@@ -90,4 +96,4 @@ bot.command("help", (ctx) => {
   );
 });
 bot.launch();
-console.log("bot litenig...");
+console.log("bot listening...");
