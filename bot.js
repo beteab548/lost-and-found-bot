@@ -1,14 +1,23 @@
 import { Telegraf } from "telegraf";
+import fs from "fs";
+import { pipeline } from "stream";
 const token = "7815304747:AAGQPXhRdCa88KMeS3pUau3akF_0XxI53qw";
 const bot = new Telegraf(token);
 let userResponse = {};
 bot.command("start", (ctx) => {
   userResponse[ctx.from.id] = { state: "name" };
   ctx.reply("welcome what is your name?");
+  console.log(userResponse);
 });
 bot.on("text", (ctx) => {
   const userState = userResponse[ctx.from.id];
-  console.log(userState);
+  if (ctx.message.text === "/start") {
+    return;
+  }
+  if (!userState) {
+    ctx.reply("please type /Start to start interacting with the bot");
+    return;
+  }
   if (userState.state === "name") {
     userState.name = ctx.message.text;
     userState.state = "email";
@@ -51,12 +60,28 @@ bot.on("callback_query", (ctx) => {
   if (action === "yes_image") {
     ctx.reply("upload your image here...");
   }
-  // userState['file']//accept the image here and store it in the app
   if (action === "no_image") {
     ctx.reply("what is the item you lost? describe it with 3 words");
   }
   if (action === "Report") {
     ctx.reply("");
+  }
+});
+bot.on("photo", async (ctx) => {
+  const imageArray = ctx.message.photo;
+  const imageUrl = imageArray[imageArray.length - 1].file_id;
+  const file = await ctx.telegram.getFileLink(imageUrl);
+  console.log(file.href);
+  const response = await fetch(file.href);
+  const fileStream = fs.createWriteStream(`image-${Date.now()}.jpg`);
+  try {
+    pipeline(response.body, fileStream, (err) => {
+      console.log(err);
+    });
+    ctx.reply("your image is being processed...pls be patient 😊");
+  } catch (err) {
+    console.log("error saving the iamge:", err);
+    ctx.reply("Error occured while saving Image, pls try agian later 😊");
   }
 });
 bot.command("help", (ctx) => {
