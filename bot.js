@@ -1,5 +1,6 @@
 import { Telegraf } from "telegraf";
 import fs from "fs";
+import path from "path";
 import { pipeline } from "stream";
 import connect from "./database/connect.js";
 import { user } from "./database/models.js";
@@ -9,10 +10,8 @@ let userResponse = {};
 let userState;
 bot.command("start", async (ctx) => {
   await connect;
-  // console.log(userResponse);
   const userExist = await user.findOne({ chatId: ctx.from.id });
   if (userExist) {
-    // console.log(userExist);
     const userData = {
       chatId: userExist.chatId,
       name: userExist.name,
@@ -103,15 +102,24 @@ bot.on("callback_query", (ctx) => {
 bot.on("photo", async (ctx) => {
   const imageArray = ctx.message.photo;
   const imageUrl = imageArray[imageArray.length - 1].file_id;
+  console.log("below is file ");
   const file = await ctx.telegram.getFileLink(imageUrl);
   const response = await fetch(file.href);
-  const fileStream = fs.createWriteStream(`image-${Date.now()}.jpg`);
+  const __dirname = path.resolve();
+  const filePath = path.join(
+    __dirname,
+    "images/find",
+    `image-${Date.now()}.jpg`
+  );
+  const fileStream = fs.createWriteStream(filePath);
   try {
     pipeline(response.body, fileStream, (err) => {
       console.log(err);
     });
     ctx.reply("your image is being processed...pls be patient 😊");
+
     //And this is where i compare with the image i have in my database and give it the matching values
+    //check if the image match is found in the database or if not then say like oh sorry no match found try describing your items with words instead
   } catch (err) {
     console.log("error saving the iamge:", err);
     ctx.reply("Error occured while saving Image, pls try agian later 😊");

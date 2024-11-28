@@ -8,3 +8,7 @@ const userSchema = new Schema({
   state: { type: SchemaTypes.String, required: true, default: "name" },
 });
 export const user = mongoose.models.user || model("user", userSchema);
+const searchImages = new Schema({
+  userId: { type: SchemaTypes.ObjectId, required: true },
+  imageUrl: { type: SchemaTypes.String, required: true },
+});
