@@ -4,7 +4,7 @@ import path from "path";
 import { pipeline } from "stream";
 import connect from "./database/connect.js";
 import { searchImage, user } from "./database/models.js";
-import mongoose, { SchemaTypes } from "mongoose";
+import mongoose from "mongoose";
 const token = "7815304747:AAGQPXhRdCa88KMeS3pUau3akF_0XxI53qw";
 const bot = new Telegraf(token);
 let userResponse = {};
@@ -89,13 +89,14 @@ bot.on("callback_query", (ctx) => {
     });
   }
   if (action === "yes_image") {
-    ctx.reply("upload your image here...");
+    ctx.reply("upload only jpg image here...");
   }
   if (action === "no_image") {
     ctx.reply(
       "Describe your lost item with 3 words (pls separate them with a comma like this ,)"
     );
     userState.state = "Items_description";
+    //store the user description in the database and call a function that compares the stored description with
   }
   if (action === "Report") {
     ctx.reply("");
