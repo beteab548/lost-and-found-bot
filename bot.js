@@ -5,7 +5,7 @@ import { pipeline } from "stream";
 import connect from "./database/connect.js";
 import { searchImage, user } from "./database/models.js";
 import mongoose from "mongoose";
-const token = "7815304747:AAGQPXhRdCa88KMeS3pUau3akF_0XxI53qw";
+const token = "7815304747:AAGQPXhRdCa88KMeS3pUau3akF_0Xxghlw";//fake token
 const bot = new Telegraf(token);
 let userResponse = {};
 let userState;
